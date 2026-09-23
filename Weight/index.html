@@ -1,0 +1,467 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Дневник веса</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Prata&family=Manrope:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#F4F6F3; --card:#FFFFFF; --ink:#1D2A29; --ink2:#566361; --muted:#8A9593; --line:#E1E6E2;
+  --accent:#2C7A6B; --accent-soft:rgba(44,122,107,.14); --inj:#D9793F; --corr:rgba(76,168,132,.17);
+  --warn:#B7791F; --warn-bg:#FBF1DE; --ok:#2C7A6B; --ok-bg:#E3F1EC; --calm:#566361; --calm-bg:#ECEFEC;
+  --heat0:#EEF1EE; --heat5:#2C7A6B; --ev:#7358C4; --pulse:#C2456B;
+  --serif:"Prata",Georgia,"Times New Roman",serif; --sans:"Manrope",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  color-scheme:dark; --bg:#111716; --card:#18201F; --ink:#E4ECE9; --ink2:#B2BFBB; --muted:#7F8C89; --line:#26302E;
+  --accent:#62C3AE; --accent-soft:rgba(98,195,174,.16); --inj:#F0A06A; --corr:rgba(98,195,174,.13);
+  --warn:#E6B45A; --warn-bg:#2E2614; --ok:#62C3AE; --ok-bg:#15302A; --calm:#B2BFBB; --calm-bg:#222B29; --heat0:#222B29; --heat5:#62C3AE; --ev:#B29DF0; --pulse:#EE7E9F;}}
+:root[data-theme="dark"]{
+  color-scheme:dark; --bg:#111716; --card:#18201F; --ink:#E4ECE9; --ink2:#B2BFBB; --muted:#7F8C89; --line:#26302E;
+  --accent:#62C3AE; --accent-soft:rgba(98,195,174,.16); --inj:#F0A06A; --corr:rgba(98,195,174,.13);
+  --warn:#E6B45A; --warn-bg:#2E2614; --ok:#62C3AE; --ok-bg:#15302A; --calm:#B2BFBB; --calm-bg:#222B29; --heat0:#222B29; --heat5:#62C3AE; --ev:#B29DF0; --pulse:#EE7E9F;}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.55;margin:0}
+.wrap{max-width:880px;margin:0 auto;padding-inline:16px;padding-block:28px 48px;display:flex;flex-direction:column;gap:20px}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+h1{font-family:var(--serif);font-weight:400;font-size:30px;margin:0;letter-spacing:.2px}
+h2{font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--ink2);margin:0 0 14px}
+.sub{color:var(--muted);font-size:13px}
+button{font:inherit;font-size:13px;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 14px;cursor:pointer}
+button:hover{border-color:var(--accent)} button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px}
+.hero{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:24px;align-items:center}
+@media (max-width:640px){.hero{grid-template-columns:1fr}}
+.big{font-family:var(--serif);font-size:64px;line-height:1;font-variant-numeric:lining-nums tabular-nums}
+.big small{font-family:var(--sans);font-size:18px;color:var(--ink2);margin-left:6px}
+.delta{margin-top:10px;font-size:15px;color:var(--ink2)} .delta b{color:var(--accent);font-weight:600}
+.facts{display:grid;grid-template-columns:1fr 1fr;gap:14px 18px}
+.fact .k{font-size:12px;color:var(--muted)} .fact .v{font-size:17px;font-weight:600;font-variant-numeric:tabular-nums}
+.pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:3px 10px;font-size:13px;font-weight:600}
+.pill.ok{background:var(--ok-bg);color:var(--ok)} .pill.warn{background:var(--warn-bg);color:var(--warn)} .pill.calm{background:var(--calm-bg);color:var(--calm)}
+.goal{margin-top:22px}
+.track{position:relative;height:12px;border-radius:999px;background:var(--heat0);margin:30px 0 8px}
+.fill{position:absolute;left:0;top:0;bottom:0;border-radius:999px;background:var(--accent);transition:width .6s ease}
+.mark{position:absolute;top:-24px;transform:translateX(-50%);font-size:11px;color:var(--muted);white-space:nowrap}
+.mark::after{content:"";position:absolute;left:50%;top:18px;width:1px;height:18px;background:var(--line)}
+.mark.l{transform:none}.mark.l::after{left:0}.mark.r{transform:translateX(-100%)}.mark.r::after{left:auto;right:0}
+.goalrow{display:flex;justify-content:space-between;font-size:13px;color:var(--ink2);gap:8px;flex-wrap:wrap}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:var(--ink2);margin-bottom:10px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{display:inline-block;width:14px;height:10px;border-radius:2px}
+.chart{position:relative;height:320px}
+@media (max-width:640px){.chart{height:260px}}
+.note{font-size:13px;color:var(--ink2);margin-top:12px}
+.empty{color:var(--ink2);font-size:14px;background:var(--calm-bg);border-radius:12px;padding:14px 16px}
+.cyc{overflow-x:auto}
+.cyc table{border-collapse:separate;border-spacing:4px;font-size:13px;min-width:420px}
+.cyc th{font-weight:500;color:var(--muted);font-size:12px;padding:0 2px}
+.cyc td.lbl{color:var(--ink2);padding-right:8px;white-space:nowrap}
+.cell{width:44px;height:34px;border-radius:8px;text-align:center;font-variant-numeric:tabular-nums;font-weight:600}
+.meas{display:flex;flex-direction:column;gap:12px}
+.mrow{display:grid;grid-template-columns:130px minmax(0,1fr) 90px;gap:12px;align-items:center;font-size:14px}
+@media (max-width:520px){.mrow{grid-template-columns:96px minmax(0,1fr) 70px;font-size:13px}}
+.mrow .n{color:var(--ink2)} .mrow .d{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+.db{position:relative;height:16px}
+.db .ln{position:absolute;top:7px;height:2px;background:var(--accent-soft)}
+.db .a,.db .b{position:absolute;top:2px;width:12px;height:12px;border-radius:50%;transform:translateX(-50%)}
+.db .a{border:2px solid var(--muted);background:var(--card)} .db .b{background:var(--accent)}
+.notes{display:flex;flex-direction:column;gap:10px;margin:0;padding:0;list-style:none}
+.notes li{display:grid;grid-template-columns:56px 1fr;gap:10px;font-size:14px}
+.notes .dt{color:var(--muted);font-variant-numeric:tabular-nums}
+.status{font-size:13px;border-radius:12px;padding:12px 14px;background:var(--warn-bg);color:var(--warn)}
+.pstats{display:flex;flex-wrap:wrap;gap:12px 28px;margin-bottom:14px}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px}
+@media (max-width:720px){.two{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){.fill{transition:none}}
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <header>
+    <div class="sub" id="upd">Загружаю данные из таблицы…</div>
+    <div style="display:flex;gap:8px"><button id="refresh" type="button">Обновить</button><button id="logout" type="button">Выйти</button></div>
+  </header>
+
+  <div id="status" class="status" hidden></div>
+
+  <form id="gate" class="panel" hidden>
+    <h2>Вход</h2>
+    <p style="margin:0 0 12px;color:var(--ink2)">Введи PIN, чтобы увидеть свои данные. На этом устройстве он запомнится.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <input id="pin" type="password" autocomplete="current-password" style="font:inherit;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);min-width:0;flex:1 1 200px">
+      <button type="submit">Открыть</button>
+    </div>
+    <p id="pinErr" style="margin:8px 0 0;color:var(--warn);font-size:13px" hidden></p>
+  </form>
+
+  <section class="panel">
+    <div class="hero">
+      <div>
+        <div class="sub" id="nowLbl">Последнее взвешивание</div>
+        <div class="big" id="now">—<small>кг</small></div>
+        <div class="delta" id="delta">&nbsp;</div>
+      </div>
+      <div class="facts">
+        <div class="fact"><div class="k">Темп за 2 недели</div><div class="v" id="pace">—</div></div>
+        <div class="fact"><div class="k">Статус</div><div class="v" id="paceTag">—</div></div>
+        <div class="fact"><div class="k">Уколов сделано</div><div class="v" id="injN">—</div></div>
+        <div class="fact"><div class="k">Следующий укол</div><div class="v" id="injNext">—</div></div>
+      </div>
+    </div>
+    <div class="goal">
+      <div class="track" id="track"><div class="fill" id="fill" style="width:0"></div></div>
+      <div class="goalrow"><span id="goalLeft">&nbsp;</span><span id="goalEta">&nbsp;</span></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Вес и уколы</h2>
+    <div class="legend">
+      <span><span class="sw" style="width:8px;height:8px;border-radius:50%;background:var(--accent)"></span>взвешивание</span>
+      <span><span class="sw" style="height:2px;background:var(--accent)"></span>тренд</span>
+      <span><span class="sw" style="background:var(--corr)"></span>комфортный темп 0,5–1% в неделю</span>
+      <span><span class="sw" style="width:0;height:12px;border-left:2px dashed var(--inj);border-radius:0"></span>укол</span>
+      <span><span class="sw" style="width:0;height:12px;border-left:2px solid var(--ev);border-radius:0"></span>событие</span>
+    </div>
+    <div class="chart"><canvas id="wchart" role="img" aria-label="График веса по дням с отметками уколов и коридором комфортного темпа"></canvas></div>
+    <p class="note">Отдельные точки прыгают на ±0,5 кг из-за воды и соли. Смотри на линию тренда: если она в зелёной полосе, темп комфортный.</p>
+  </section>
+
+  <section class="panel">
+    <h2>Ночной пульс</h2>
+    <div id="pulseBox"></div>
+  </section>
+
+  <div class="two">
+    <section class="panel">
+      <h2>Аппетит и самочувствие по дням после укола</h2>
+      <div id="cycle"></div>
+    </section>
+    <section class="panel">
+      <h2>Замеры: было → стало</h2>
+      <div id="meas"></div>
+    </section>
+  </div>
+
+  <section class="panel">
+    <h2>Заметки</h2>
+    <div id="notes"></div>
+  </section>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+(function(){
+const FILE_ID = "1QCNfAEacgk3AH0OI1gYbX190Dema4HcAJ8HrKrKpEho";
+const SERVER = "Google Drive", TOOL = "read_file_content";
+const GOAL = 80, START_YEAR = 2026, DAY = 864e5;
+const $ = id => document.getElementById(id);
+const fmt = (v, d = 1) => v == null || isNaN(v) ? "—" : v.toFixed(d).replace(".", ",");
+const sgn = v => (v > 0 ? "+" : v < 0 ? "−" : "") + fmt(Math.abs(v));
+const ddmm = t => { const d = new Date(t); return String(d.getDate()).padStart(2,"0") + "." + String(d.getMonth()+1).padStart(2,"0"); };
+const MONTHS = ["января","февраля","марта","апреля","мая","июня","июля","августа","сентября","октября","ноября","декабря"];
+const human = t => { const d = new Date(t); return d.getDate() + " " + MONTHS[d.getMonth()]; };
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+let chart = null, lastModel = null;
+
+function clean(c){ return c.replace(/\\\[merged\\\]/g,"").replace(/\[merged\]/g,"").replace(/\\/g,"").trim(); }
+function num(c){ if (!c) return null; const v = parseFloat(c.replace(",", ".").replace(/[^\d.\-]/g,"")); return isNaN(v) ? null : v; }
+
+function parse(rows){
+  rows = rows.map(r => r.map(c => String(c == null ? "" : c).trim()));
+  const hdr = rows.find(r => /^Параметр/i.test(r[1] || "") && r.slice(3).some(c => /^\d{1,2}\.\d{1,2}$/.test(c)));
+  if (!hdr) throw new Error("layout");
+  let year = START_YEAR, prevM = 0;
+  const dates = hdr.map((c, i) => {
+    if (i < 3) return null;
+    const m = c.match(/^(\d{1,2})\.(\d{1,2})$/); if (!m) return null;
+    const mo = +m[2]; if (mo < prevM) year++; prevM = mo;
+    return new Date(year, mo - 1, +m[1]).getTime();
+  });
+  const byLabel = re => rows.find(r => re.test(r[1] || ""));
+  const series = (r, f) => { const out = []; if (!r) return out; dates.forEach((t, i) => { if (t == null) return; const v = f(r[i] || ""); if (v != null && v !== "") out.push({ t, v }); }); return out; };
+  const doses = series(byLabel(/^Приём|^Прием/i), c => /^(true|да|1|✓|x)$/i.test(c) ? 1 : null).map(p => p.t);
+  const weight = series(byLabel(/^Вес/i), num);
+  const appetite = series(byLabel(/аппетит/i), num);
+  const feel = series(rows.find(r => /самочувств/i.test(r[1] || "") && !/заметк/i.test(r[1] || "")), num);
+  const notes = series(byLabel(/заметк/i), c => c || null);
+  const meas = rows.filter(r => /^Объ[её]м/i.test(r[1] || "")).map(r => ({ name: r[1].replace(/^Объ[её]м\s*/i, ""), pts: series(r, num) }));
+  const pulse = series(byLabel(/пульс/i), num);
+  const events = series(byLabel(/^Событ/i), c => c || null);
+  const EVRE = /(?:^|[\s,.;])((?:старт|начал[аои]?|начинаю|отмен[аиу]|стоп|смена|перешла|повышени[ея]|снижени[ея]|доз[аы])[^.;\n]*)/i;
+  notes.forEach(n => { const mm = n.v.match(EVRE); if (!mm) return; const txt = mm[1].trim(); if (!events.some(e => e.t === n.t && e.v.toLowerCase() === txt.toLowerCase())) events.push({ t: n.t, v: txt.charAt(0).toUpperCase() + txt.slice(1) }); });
+  events.sort((x, y) => x.t - y.t);
+  return { dates: dates.filter(t => t != null), doses, weight, appetite, feel, notes, meas, pulse, events };
+}
+
+function model(d){
+  const W = d.weight;
+  const trend = W.map(p => { const win = W.filter(q => q.t <= p.t && q.t > p.t - 5 * DAY); return { t: p.t, v: win.reduce((a, b) => a + b.v, 0) / win.length }; });
+  const now = trend.length ? trend[trend.length - 1] : null;
+  const start = W[0] || null;
+  let slope = null;
+  if (now){
+    const pts = W.filter(p => p.t > now.t - 14 * DAY);
+    if (pts.length >= 4){
+      const xs = pts.map(p => (p.t - pts[0].t) / (7 * DAY)), ys = pts.map(p => p.v);
+      const mx = xs.reduce((a,b)=>a+b)/xs.length, my = ys.reduce((a,b)=>a+b)/ys.length;
+      let num_ = 0, den = 0; xs.forEach((x, i) => { num_ += (x - mx) * (ys[i] - my); den += (x - mx) ** 2; });
+      slope = den ? num_ / den : null;
+    }
+  }
+  return { ...d, trend, now, start, slope };
+}
+
+function renderHero(m){
+  if (!m.now){ $("now").innerHTML = "—<small>кг</small>"; return; }
+  const cur = m.weight[m.weight.length - 1];
+  $("now").innerHTML = fmt(cur.v) + "<small>кг</small>";
+  $("nowLbl").textContent = "Последнее взвешивание · " + human(cur.t);
+  const lost = m.start.v - cur.v, pct = lost / m.start.v * 100;
+  $("delta").innerHTML = lost > 0
+    ? "<b>−" + fmt(lost) + " кг</b> с " + human(m.start.t) + " · " + fmt(pct) + "% от стартовых " + fmt(m.start.v) + " кг"
+    : "Старт " + fmt(m.start.v) + " кг, " + human(m.start.t);
+  $("delta").innerHTML += '<br><span style="font-size:13px;color:var(--muted)">Тренд без скачков воды: ' + fmt(m.now.v) + " кг</span>";
+  if (m.slope != null){
+    const wk = -m.slope / m.now.v * 100;
+    $("pace").textContent = (m.slope <= 0 ? "−" : "+") + fmt(Math.abs(m.slope)) + " кг/нед";
+    let cls = "ok", txt = "в коридоре";
+    if (wk < 0.25){ cls = "calm"; txt = "плато, это нормально"; }
+    else if (wk < 0.5){ cls = "calm"; txt = "мягко, ниже коридора"; }
+    else if (wk > 1.5){ cls = "warn"; txt = "очень быстро: скажи врачу"; }
+    else if (wk > 1){ cls = "warn"; txt = "быстрее коридора"; }
+    $("paceTag").innerHTML = '<span class="pill ' + cls + '">' + txt + "</span>";
+  } else { $("pace").textContent = "мало данных"; $("paceTag").textContent = "—"; }
+  const n = m.doses.length; $("injN").textContent = n || "0";
+  if (n){
+    const last = m.doses[n - 1], next = last + 7 * DAY, today = new Date(); today.setHours(0,0,0,0);
+    const dd = Math.round((next - today.getTime()) / DAY);
+    $("injNext").textContent = human(next) + (dd === 0 ? " · сегодня" : dd === 1 ? " · завтра" : dd < 0 ? " · пропущен?" : "");
+  } else $("injNext").textContent = "—";
+
+  const total = m.start.v - GOAL, done = Math.max(0, Math.min(1, (m.start.v - cur.v) / total));
+  const track = $("track"); track.querySelectorAll(".mark").forEach(e => e.remove());
+  const nextKg = Math.floor(cur.v - 0.05);
+  [[m.start.v, "старт " + fmt(m.start.v)], [85, "85"], [GOAL, "цель 80"]].forEach(([kg, lbl]) => {
+    const x = (m.start.v - kg) / total * 100; if (x < 0 || x > 100) return;
+    const el = document.createElement("span"); el.className = "mark"; el.style.left = x + "%"; el.textContent = lbl;
+    if (x < 3) el.classList.add("l"); if (x > 97) el.classList.add("r");
+    track.appendChild(el);
+  });
+  requestAnimationFrame(() => { $("fill").style.width = (done * 100).toFixed(1) + "%"; });
+  const left = cur.v - GOAL;
+  $("goalLeft").innerHTML = left > 0
+    ? "Пройдено <b>" + Math.round(done * 100) + "%</b> пути · до ближайшей отметки " + nextKg + " кг осталось " + fmt(cur.v - nextKg)
+    : "<b>Цель 80 кг достигнута!</b>";
+  if (left > 0 && m.slope != null && m.slope < -0.05){
+    const eta = m.now.t + left / -m.slope * 7 * DAY;
+    $("goalEta").textContent = "Если темп сохранится, 80 кг примерно к " + human(eta) + " " + new Date(eta).getFullYear();
+  } else $("goalEta").textContent = "";
+}
+
+const injPlugin = { id: "inj", afterDatasetsDraw(c){
+  const { ctx, chartArea: a, scales: { x } } = c, col = css("--inj"), m = c.$m; if (!m) return;
+  const marks = m.doses.map((t, i) => ({ t, lbl: "укол " + (i + 1), ghost: false }));
+  if (m.doses.length) marks.push({ t: m.doses[m.doses.length - 1] + 7 * DAY, lbl: "след.", ghost: true });
+  marks.forEach(k => {
+    const px = x.getPixelForValue(k.t); if (px < a.left - 1 || px > a.right + 1) return;
+    ctx.save(); ctx.strokeStyle = col; ctx.globalAlpha = k.ghost ? .45 : .9; ctx.setLineDash([4, 4]); ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(px, a.top); ctx.lineTo(px, a.bottom); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = col; ctx.font = "11px Manrope, system-ui, sans-serif"; ctx.textAlign = k.ghost ? "right" : "left"; ctx.fillText(k.lbl, px + (k.ghost ? -4 : 4), a.top - 10); ctx.restore();
+  });
+}};
+const evPlugin = { id: "ev", afterDatasetsDraw(c){
+  const { ctx, chartArea: a, scales: { x } } = c, col = css("--ev"), m = c.$m; if (!m || !m.events) return;
+  m.events.forEach((e, i) => {
+    const px = x.getPixelForValue(e.t); if (px < a.left - 1 || px > a.right + 1) return;
+    ctx.save(); ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.globalAlpha = .85;
+    ctx.beginPath(); ctx.moveTo(px, a.top); ctx.lineTo(px, a.bottom); ctx.stroke();
+    ctx.globalAlpha = 1; ctx.fillStyle = col; ctx.font = "500 11px Manrope, system-ui, sans-serif";
+    const lbl = e.v.length > 26 ? e.v.slice(0, 25) + "…" : e.v, w = ctx.measureText(lbl).width, right = px + 6 + w > a.right;
+    ctx.textAlign = right ? "right" : "left"; ctx.fillText(lbl, px + (right ? -6 : 6), a.bottom - 8 - (i % 2) * 14); ctx.restore();
+  });
+}};
+
+function renderChart(m){
+  const cv = $("wchart");
+  if (!m.weight.length){ if (chart){ chart.destroy(); chart = null; } return; }
+  const t0 = m.start.t;
+  const lastT = Math.max(m.weight[m.weight.length - 1].t, m.doses.length ? m.doses[m.doses.length - 1] + 7 * DAY : 0);
+  const days = []; for (let t = Math.min(t0, m.doses[0] ?? t0); t <= lastT; t += DAY) days.push(t);
+  const hi = days.map(t => ({ x: t, y: t < t0 ? null : m.start.v * (1 - 0.005 * (t - t0) / (7 * DAY)) }));
+  const lo = days.map(t => ({ x: t, y: t < t0 ? null : m.start.v * (1 - 0.01 * (t - t0) / (7 * DAY)) }));
+  const vals = m.weight.map(p => p.v).concat(lo.filter(p => p.y != null && p.x <= lastT).map(p => p.y));
+  const ymin = Math.floor((Math.min(...vals) - 0.4) * 2) / 2, ymax = Math.ceil((Math.max(...vals) + 0.4) * 2) / 2;
+  const accent = css("--accent"), muted = css("--muted"), line = css("--line"), card = css("--card"), corr = css("--corr"), ink = css("--ink");
+  const noteBy = {}; m.notes.forEach(n => noteBy[n.t] = n.v);
+  if (chart) chart.destroy();
+  chart = new Chart(cv, {
+    type: "line", plugins: [injPlugin, evPlugin],
+    data: { datasets: [
+      { data: hi, borderWidth: 0, pointRadius: 0, fill: "+1", backgroundColor: corr, spanGaps: false },
+      { data: lo, borderWidth: 0, pointRadius: 0, fill: false },
+      { data: m.trend.map(p => ({ x: p.t, y: p.v })), borderColor: accent, borderWidth: 2.5, pointRadius: 0, tension: .35, borderCapStyle: "round" },
+      { data: m.weight.map(p => ({ x: p.t, y: p.v })), showLine: false, pointRadius: 4.5, pointHoverRadius: 6, pointBackgroundColor: accent, pointBorderColor: card, pointBorderWidth: 2 }
+    ]},
+    options: {
+      responsive: true, maintainAspectRatio: false, animation: false, layout: { padding: { top: 26 } },
+      interaction: { mode: "nearest", intersect: false, axis: "x" },
+      plugins: { legend: { display: false }, tooltip: {
+        filter: i => i.datasetIndex === 3,
+        backgroundColor: card, titleColor: ink, bodyColor: ink, borderColor: line, borderWidth: 1, padding: 10,
+        callbacks: { title: i => human(i[0].raw.x), label: i => fmt(i.raw.y) + " кг", afterLabel: i => noteBy[i.raw.x] || "" } } },
+      scales: {
+        x: { type: "linear", min: days[0], max: lastT, grid: { display: false }, border: { color: line },
+             ticks: { color: muted, maxRotation: 0, autoSkip: false, stepSize: 7 * DAY, callback: v => ddmm(v) },
+             afterBuildTicks: ax => { const out = []; for (let t = days[0]; t <= lastT; t += 7 * DAY) out.push({ value: t }); ax.ticks = out; } },
+        y: { min: ymin, max: ymax, grid: { color: line }, border: { display: false }, ticks: { color: muted, stepSize: .5, callback: v => fmt(v) } }
+      }
+    }
+  });
+  chart.$m = m; chart.update();
+}
+
+function renderCycle(m){
+  const box = $("cycle");
+  if (!m.doses.length || (!m.appetite.length && !m.feel.length)){
+    box.innerHTML = '<div class="empty">Добавь в таблицу строки <b>«Аппетит»</b> и <b>«Самочувствие»</b> с оценкой от 1 до 5. Здесь появится, как ты себя чувствуешь в 1-й, 2-й … 7-й день после укола.</div>';
+    return;
+  }
+  const dayOf = t => { const prev = m.doses.filter(d => d <= t).pop(); if (prev == null) return null; const k = Math.round((t - prev) / DAY) + 1; return k >= 1 && k <= 7 ? k : null; };
+  const avg = s => { const b = Array.from({ length: 7 }, () => []); s.forEach(p => { const k = dayOf(p.t); if (k) b[k - 1].push(p.v); }); return b.map(a => a.length ? a.reduce((x, y) => x + y) / a.length : null); };
+  const rows = [["Аппетит", avg(m.appetite)], ["Самочувствие", avg(m.feel)]];
+  const cell = v => {
+    if (v == null) return '<td><div class="cell" style="background:var(--heat0);color:var(--muted);line-height:34px">·</div></td>';
+    const a = Math.max(.08, Math.min(1, (v - 1) / 4));
+    return '<td><div class="cell" style="line-height:34px;background:color-mix(in srgb, var(--heat5) ' + Math.round(a * 85) + '%, var(--heat0));color:' + (a > .55 ? "var(--card)" : "var(--ink)") + '">' + fmt(v) + "</div></td>";
+  };
+  box.innerHTML = '<div class="cyc"><table><thead><tr><th></th>' + [1,2,3,4,5,6,7].map(k => "<th>" + (k === 1 ? "укол" : "д" + k) + "</th>").join("") + "</tr></thead><tbody>" +
+    rows.map(([n, a]) => '<tr><td class="lbl">' + n + "</td>" + a.map(cell).join("") + "</tr>").join("") + "</tbody></table></div>" +
+    '<p class="note">Среднее по всем неделям, шкала 1–5. Чем темнее, тем выше оценка.</p>';
+}
+
+function renderMeas(m){
+  const box = $("meas");
+  const rows = m.meas.filter(r => r.pts.length);
+  if (!rows.length){ box.innerHTML = '<div class="empty">Замеров пока нет. Лучше мерить раз в неделю: в один и тот же день, утром, в одних и тех же точках. После второго замера здесь будет видно, сколько сантиметров ушло.</div>'; return; }
+  const all = rows.flatMap(r => r.pts.map(p => p.v)), lo = Math.min(...all) - 4, hi = Math.max(...all) + 4, x = v => ((v - lo) / (hi - lo) * 100).toFixed(1) + "%";
+  let sum = 0;
+  const html = rows.map(r => {
+    const a = r.pts[0], b = r.pts[r.pts.length - 1], d = b.v - a.v; if (r.pts.length > 1) sum += d;
+    const l = Math.min(a.v, b.v), w = Math.abs(d);
+    return '<div class="mrow"><span class="n">' + r.name + '</span><div class="db" title="' + fmt(a.v) + " → " + fmt(b.v) + ' см">' +
+      (r.pts.length > 1 ? '<span class="ln" style="left:' + x(l) + ";width:calc(" + x(l + w) + " - " + x(l) + ')"></span><span class="a" style="left:' + x(a.v) + '"></span>' : "") +
+      '<span class="b" style="left:' + x(b.v) + '"></span></div><span class="d" style="color:' + (d < 0 ? "var(--accent)" : "var(--ink2)") + '">' +
+      (r.pts.length > 1 ? sgn(d) + " см" : fmt(b.v) + " см") + "</span></div>";
+  }).join("");
+  const first = Math.min(...rows.map(r => r.pts[0].t)), last = Math.max(...rows.map(r => r.pts[r.pts.length - 1].t));
+  box.innerHTML = '<div class="meas">' + html + '</div><p class="note">' +
+    (first === last ? "Первый замер: " + human(first) + ". Сравнение появится после следующего." : "С " + human(first) + " по " + human(last) + " · всего <b style=\"color:var(--accent)\">" + sgn(sum) + " см</b>") + "</p>";
+}
+
+function renderNotes(m){
+  const box = $("notes");
+  if (!m.notes.length){ box.innerHTML = '<div class="empty">Заметок пока нет. Они появятся здесь и в подсказках на графике.</div>'; return; }
+  box.innerHTML = '<ul class="notes">' + m.notes.slice(-8).reverse().map(n => '<li><span class="dt">' + ddmm(n.t) + "</span><span></span></li>").join("") + "</ul>";
+  box.querySelectorAll("li").forEach((li, i) => li.lastChild.textContent = m.notes.slice(-8).reverse()[i].v);
+}
+
+let pchart = null;
+function renderPulse(m){
+  const box = $("pulseBox"), P = m.pulse;
+  if (P.length < 2){
+    if (pchart){ pchart.destroy(); pchart = null; }
+    box.innerHTML = '<div class="empty">Добавь в таблицу строку <b>«Ночной пульс»</b> (уд/мин) и заноси туда средний пульс за ночь из часов или браслета. Если в приложении есть история, внеси и прошлые дни: так будет видно твой обычный уровень. Строка <b>«События»</b> отметит на графиках важные даты, например начало нового лекарства.</div>';
+    return;
+  }
+  const avg = a => a.length ? a.reduce((x, y) => x + y.v, 0) / a.length : null;
+  const last = P[P.length - 1], w1 = P.filter(p => p.t > last.t - 7 * DAY), w0 = P.filter(p => p.t <= last.t - 7 * DAY && p.t > last.t - 14 * DAY);
+  const ev = m.events.filter(e => e.t > P[0].t && e.t <= last.t).pop();
+  let cmp = "";
+  if (ev){ const b = P.filter(p => p.t < ev.t), a = P.filter(p => p.t >= ev.t);
+    if (b.length >= 3 && a.length >= 3) cmp = '<div class="fact"><div class="k">До и после «' + (ev.v.length > 22 ? ev.v.slice(0, 21) + "…" : ev.v) + '»</div><div class="v">' + Math.round(avg(b)) + " → " + Math.round(avg(a)) + ' <small style="font-weight:400;color:var(--muted)">уд/мин</small></div></div>'; }
+  box.innerHTML = '<div class="pstats">' +
+    '<div class="fact"><div class="k">Последняя ночь · ' + ddmm(last.t) + '</div><div class="v">' + Math.round(last.v) + ' <small style="font-weight:400;color:var(--muted)">уд/мин</small></div></div>' +
+    '<div class="fact"><div class="k">Среднее за 7 дней</div><div class="v">' + fmt(avg(w1)) + (w0.length >= 3 ? ' <small style="font-weight:400;color:var(--muted)">неделей раньше ' + fmt(avg(w0)) + "</small>" : "") + "</div></div>" + cmp + "</div>" +
+    '<div class="legend"><span><span class="sw" style="width:8px;height:8px;border-radius:50%;background:var(--pulse)"></span>ночь</span><span><span class="sw" style="height:2px;background:var(--pulse)"></span>среднее за 7 дней</span><span><span class="sw" style="width:0;height:12px;border-left:2px solid var(--ev);border-radius:0"></span>событие</span></div>' +
+    '<div class="chart" style="height:240px"><canvas id="pchart" role="img" aria-label="Ночной пульс по дням с отметками событий"></canvas></div>' +
+    '<p class="note">Ночной пульс поднимается при болезни, после алкоголя, позднего ужина и в тревожные дни, поэтому отдельные ночи мало что значат. Смотри на линию среднего за неделю.</p>';
+  const tr = P.map(p => { const win = P.filter(q => q.t <= p.t && q.t > p.t - 7 * DAY); return { x: p.t, y: win.reduce((a, b) => a + b.v, 0) / win.length }; });
+  const t0 = Math.min(P[0].t, ...m.events.filter(e => e.t >= P[0].t - 3 * DAY).map(e => e.t)), t1 = last.t + DAY;
+  const vs = P.map(p => p.v), accent = css("--pulse"), muted = css("--muted"), line = css("--line"), card = css("--card"), ink = css("--ink");
+  if (pchart) pchart.destroy();
+  pchart = new Chart($("pchart"), { type: "line", plugins: [evPlugin],
+    data: { datasets: [
+      { data: tr, borderColor: accent, borderWidth: 2.5, pointRadius: 0, tension: .35 },
+      { data: P.map(p => ({ x: p.t, y: p.v })), showLine: false, pointRadius: 4, pointHoverRadius: 6, pointBackgroundColor: accent, pointBorderColor: card, pointBorderWidth: 2 } ]},
+    options: { responsive: true, maintainAspectRatio: false, animation: false, interaction: { mode: "nearest", intersect: false, axis: "x" },
+      plugins: { legend: { display: false }, tooltip: { filter: i => i.datasetIndex === 1, backgroundColor: card, titleColor: ink, bodyColor: ink, borderColor: line, borderWidth: 1, padding: 10,
+        callbacks: { title: i => human(i[0].raw.x), label: i => Math.round(i.raw.y) + " уд/мин" } } },
+      scales: {
+        x: { type: "linear", min: t0, max: t1, grid: { display: false }, border: { color: line }, ticks: { color: muted, maxRotation: 0, callback: v => ddmm(v) },
+             afterBuildTicks: ax => { const out = [], step = (t1 - t0) > 60 * DAY ? 14 * DAY : 7 * DAY; for (let t = t0; t <= t1; t += step) out.push({ value: t }); ax.ticks = out; } },
+        y: { suggestedMin: Math.floor(Math.min(...vs) - 3), suggestedMax: Math.ceil(Math.max(...vs) + 3), grid: { color: line }, border: { display: false }, ticks: { color: muted, precision: 0 } } } } });
+  pchart.$m = m; pchart.update();
+}
+
+function render(m){ lastModel = m; renderHero(m); renderChart(m); renderPulse(m); renderCycle(m); renderMeas(m); renderNotes(m); }
+
+// ===== Настройка: адрес Apps Script (Развернуть → Веб-приложение → URL) =====
+const API_URL = "https://script.google.com/macros/s/AKfycbzkEfeXpy8cIpjEY7SNvJ-ZLoDnFRr9HXVo7cgu6l9wjj0_7Lh3hSC1rjUiu6I-sfL2/exec";
+
+function showStatus(msg){ const s = $("status"); if (msg){ s.textContent = msg; s.hidden = false; } else s.hidden = true; }
+const store = {
+  get(){ try { return localStorage.getItem("ves_pin") || ""; } catch(_){ return ""; } },
+  set(v){ try { localStorage.setItem("ves_pin", v); } catch(_){} },
+  del(){ try { localStorage.removeItem("ves_pin"); } catch(_){} }
+};
+let pin = store.get(), timer = null;
+function lock(msg){
+  $("gate").hidden = false; $("logout").hidden = true; $("refresh").hidden = true;
+  document.querySelectorAll(".wrap > section, .wrap > .two").forEach(el => el.hidden = true);
+  $("upd").textContent = "Данные скрыты";
+  const e = $("pinErr"); if (msg){ e.textContent = msg; e.hidden = false; } else e.hidden = true;
+  $("pin").focus();
+}
+function unlock(){
+  $("gate").hidden = true; $("logout").hidden = false; $("refresh").hidden = false;
+  document.querySelectorAll(".wrap > section, .wrap > .two").forEach(el => el.hidden = false);
+}
+async function load(){
+  if (!pin){ lock(); return; }
+  if (API_URL.indexOf("http") !== 0){ showStatus("В файле не указан адрес Apps Script (константа API_URL)."); return; }
+  $("refresh").textContent = "Обновляю…";
+  try {
+    const r = await fetch(API_URL + "?key=" + encodeURIComponent(pin), { cache: "no-store" });
+    const j = await r.json();
+    if (j.error === "bad_key"){ store.del(); pin = ""; lock("PIN не подошёл. Попробуй ещё раз."); return; }
+    if (j.error) throw new Error(j.error);
+    unlock(); showStatus("");
+    render(model(parse(j.rows)));
+    const d = new Date();
+    $("upd").textContent = "Данные из Google-таблицы · обновлено " + human(d.getTime()) + ", " + String(d.getHours()).padStart(2,"0") + ":" + String(d.getMinutes()).padStart(2,"0");
+  } catch (e){
+    if (e.message === "layout") showStatus("Не нашла в таблице строку с датами. Проверь, что первая колонка называется «Параметр», а даты записаны как 03.09.");
+    else showStatus("Не получилось загрузить таблицу. Проверь интернет и нажми «Обновить». Если не поможет, проверь, что Apps Script развёрнут с доступом «Все».");
+  } finally { $("refresh").textContent = "Обновить"; }
+}
+$("gate").addEventListener("submit", ev => { ev.preventDefault(); const v = $("pin").value.trim(); if (!v){ $("pinErr").textContent = "Введи PIN."; $("pinErr").hidden = false; return; } pin = v; store.set(v); $("pin").value = ""; load(); });
+$("pin").addEventListener("input", () => $("pinErr").hidden = true);
+$("refresh").addEventListener("click", load);
+$("logout").addEventListener("click", () => { store.del(); pin = ""; lastModel = null; lock(); });
+document.addEventListener("visibilitychange", () => { if (!document.hidden && pin) load(); });
+setInterval(() => { if (!document.hidden && pin) load(); }, 300000);
+const rerender = () => { if (lastModel){ renderChart(lastModel); renderPulse(lastModel); } };
+try { matchMedia("(prefers-color-scheme: dark)").addEventListener("change", rerender); } catch(_){}
+load();
+})();
+</script>
+</body>
+</html>
